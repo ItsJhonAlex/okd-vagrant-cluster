@@ -1,0 +1,10 @@
+apiVersion: config.openshift.io/v1
+kind: Storage
+metadata:
+  name: cluster
+spec:
+  storageClass:
+    name: standard
+    provisioner: kubernetes.io/aws-ebs
+    parameters:
+      type: gp2

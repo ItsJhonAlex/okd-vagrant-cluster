@@ -1,0 +1,66 @@
+---
+- name: Instalar Prometheus para monitoreo
+  apt:
+    name: prometheus
+    state: present
+    update_cache: yes
+
+- name: Iniciar y habilitar Prometheus
+  systemd:
+    name: prometheus
+    state: started
+    enabled: yes
+
+- name: Copiar configuración de Prometheus
+  copy:
+    src: prometheus.yml
+    dest: /etc/prometheus/prometheus.yml
+    mode: '0644'
+  notify: restart prometheus
+
+- name: Instalar Elasticsearch para logging
+  apt:
+    name: elasticsearch
+    state: present
+    update_cache: yes
+
+- name: Iniciar y habilitar Elasticsearch
+  systemd:
+    name: elasticsearch
+    state: started
+    enabled: yes
+
+- name: Instalar Logstash para procesamiento de logs
+  apt:
+    name: logstash
+    state: present
+    update_cache: yes
+
+- name: Iniciar y habilitar Logstash
+  systemd:
+    name: logstash
+    state: started
+    enabled: yes
+
+- name: Copiar configuración de Logstash
+  copy:
+    src: logstash.conf
+    dest: /etc/logstash/conf.d/logstash.conf
+    mode: '0644'
+  notify: restart logstash
+
+- name: Instalar Kibana para visualización de logs
+  apt:
+    name: kibana
+    state: present
+    update_cache: yes
+
+- name: Iniciar y habilitar Kibana
+  systemd:
+    name: kibana
+    state: started
+    enabled: yes
+
+- name: Mensaje de éxito de instalación de monitoreo y logging
+  debug:
+    msg: "¡Monitoreo (Prometheus) y logging (ELK Stack) han sido instalados y configurados exitosamente! 🚀" 

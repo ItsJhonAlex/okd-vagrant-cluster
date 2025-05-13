@@ -1,0 +1,8 @@
+---
+- name: Prepare Ubuntu host and deploy OKD cluster
+  hosts: localhost
+  become: true
+  roles:
+    - prepare-host
+    - deploy-okd
+    - monitoring-logging

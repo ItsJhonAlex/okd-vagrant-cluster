@@ -1,0 +1,125 @@
+---
+- name: Launch Vagrant to create VMs
+  command: vagrant up
+  args:
+    chdir: "{{ playbook_dir }}/../"
+
+- name: Verificar que las VMs están corriendo
+  command: vagrant status
+  args:
+    chdir: "{{ playbook_dir }}/../"
+  register: vagrant_status
+
+- name: Mostrar estado de las VMs
+  debug:
+    var: vagrant_status.stdout_lines
+
+- name: Comprobar puertos SSH abiertos en los nodos
+  wait_for:
+    host: "{{ item }}"
+    port: 22
+    timeout: 5
+    state: started
+  loop:
+    - 192.168.56.10
+    - 192.168.56.11
+    - 192.168.56.12
+  register: ssh_ports
+
+- name: Mostrar resultado de puertos SSH
+  debug:
+    var: ssh_ports.results
+
+- name: Comprobar conectividad entre nodos (ping)
+  shell: ping -c 2 {{ item }}
+  register: ping_result
+  ignore_errors: true
+  loop:
+    - 192.168.56.10
+    - 192.168.56.11
+    - 192.168.56.12
+
+- name: Mostrar resultado de ping entre nodos
+  debug:
+    var: ping_result.results
+
+- name: Comprobar puertos HTTP (80) en los nodos
+  wait_for:
+    host: "{{ item }}"
+    port: 80
+    timeout: 5
+    state: started
+  loop:
+    - 192.168.56.10
+    - 192.168.56.11
+    - 192.168.56.12
+  register: http_ports
+
+- name: Mostrar resultado de puertos HTTP
+  debug:
+    var: http_ports.results
+
+- name: Comprobar puertos HTTPS (443) en los nodos
+  wait_for:
+    host: "{{ item }}"
+    port: 443
+    timeout: 5
+    state: started
+  loop:
+    - 192.168.56.10
+    - 192.168.56.11
+    - 192.168.56.12
+  register: https_ports
+
+- name: Mostrar resultado de puertos HTTPS
+  debug:
+    var: https_ports.results
+
+- name: Verificar que servicios básicos estén corriendo (systemd)
+  shell: systemctl is-active systemd
+  register: systemd_status
+  ignore_errors: true
+
+- name: Mostrar estado de systemd
+  debug:
+    var: systemd_status.stdout_lines
+
+- name: Instalar cliente de OKD (oc) en el nodo master
+  shell: curl -s https://mirror.openshift.com/pub/openshift-v4/clients/oc/latest/linux/oc.tar.gz | tar xz -C /usr/local/bin/
+  args:
+    chdir: "{{ playbook_dir }}/../"
+  when: inventory_hostname == 'okd-master'
+
+- name: Desplegar clúster OKD usando el instalador
+  shell: oc cluster up
+  args:
+    chdir: "{{ playbook_dir }}/../"
+  when: inventory_hostname == 'okd-master'
+
+- name: Aplicar configuración de OKD
+  shell: oc apply -f okd-config.yml
+  args:
+    chdir: "{{ playbook_dir }}/../"
+  when: inventory_hostname == 'okd-master'
+
+- name: Aplicar configuración de red
+  shell: oc apply -f network-config.yml
+  args:
+    chdir: "{{ playbook_dir }}/../"
+  when: inventory_hostname == 'okd-master'
+
+- name: Aplicar configuración de almacenamiento
+  shell: oc apply -f storage-config.yml
+  args:
+    chdir: "{{ playbook_dir }}/../"
+  when: inventory_hostname == 'okd-master'
+
+- name: Aplicar configuración de recursos
+  shell: oc apply -f resource-config.yml
+  args:
+    chdir: "{{ playbook_dir }}/../"
+  when: inventory_hostname == 'okd-master'
+
+- name: Mensaje de éxito post-instalación
+  debug:
+    msg: "¡El clúster OKD ha sido desplegado y verificado exitosamente! 🚀"

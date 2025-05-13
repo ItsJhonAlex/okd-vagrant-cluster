@@ -18,8 +18,9 @@
 
 ### Software Requerido
 - Windows 10/11 con WSL2
-- VirtualBox 6.1 o superior
-- Vagrant 2.2 o superior
+- Ubuntu 20.04 o superior en WSL2
+- VirtualBox 6.1 o superior (instalado en Windows)
+- Python 3.8 o superior
 - Ansible 2.9 o superior
 - Git
 
@@ -31,13 +32,15 @@
    wsl --set-default-version 2
    ```
 
-2. **Instalar dependencias en WSL2:**
+2. **Instalar Ubuntu desde Microsoft Store**
+
+3. **Instalar dependencias en WSL2:**
    ```bash
    sudo apt update
    sudo apt install -y python3-pip libvirt-daemon-system qemu-kvm
    ```
 
-3. **Instalar Ansible:**
+4. **Instalar Ansible:**
    ```bash
    sudo pip3 install ansible
    ```
@@ -53,53 +56,34 @@ okd-vagrant-cluster/
 │       ├── deploy-okd/        # Despliegue de OKD
 │       └── monitoring-logging/ # Monitoreo y logging
 ├── scripts/
-│   └── setup.sh              # Script de configuración inicial
+│   └── setup.sh              # Script para WSL2
 └── Vagrantfile              # Configuración de VMs
 ```
 
 ## 🚀 Proceso de Despliegue
 
-### 1. Clonar el Repositorio
-```bash
-git clone https://github.com/tuusuario/okd-vagrant-cluster.git
-cd okd-vagrant-cluster
-```
+1. **Clonar el Repositorio:**
+   ```bash
+   git clone https://github.com/tuusuario/okd-vagrant-cluster.git
+   cd okd-vagrant-cluster
+   ```
 
-### 2. Ejecutar el Script de Configuración
-```bash
-bash scripts/setup.sh
-```
-
-### 3. Verificar la Configuración
-El script realizará las siguientes verificaciones:
-- Conexión SSH a los nodos
-- Ping entre nodos
-- Puertos HTTP/HTTPS
-- Servicios systemd
-
-### 4. Despliegue Automático
-El proceso de despliegue incluye:
-1. Creación de VMs con Vagrant
-2. Configuración de red
-3. Instalación de OKD
-4. Configuración de recursos
-5. Configuración de almacenamiento
+2. **Ejecutar el Script de Configuración:**
+   ```bash
+   bash scripts/setup.sh
+   ```
 
 ## ✅ Verificación del Clúster
 
-### 1. Acceder al Clúster
 ```bash
+# Acceder al clúster
 vagrant ssh okd-master
 oc login -u system:admin
-```
 
-### 2. Verificar Nodos
-```bash
+# Verificar nodos
 oc get nodes
-```
 
-### 3. Verificar Componentes
-```bash
+# Verificar componentes
 oc get pods --all-namespaces
 ```
 
@@ -120,8 +104,6 @@ oc get pods --all-namespaces
 
 ## 🔍 Troubleshooting
 
-### Problemas Comunes
-
 1. **Error de Virtualización**
    ```bash
    # Verificar virtualización
@@ -140,20 +122,10 @@ oc get pods --all-namespaces
    oc logs -n kube-system
    ```
 
-### Comandos Útiles
-
-```bash
-# Reiniciar el clúster
-vagrant reload
-
-# Limpiar y reconstruir
-vagrant destroy -f
-vagrant up
-
-# Ver logs de Vagrant
-vagrant status
-vagrant ssh-config
-```
+4. **Problemas con WSL2**
+   - Verificar que estás usando WSL2: `wsl --list --verbose`
+   - Actualizar WSL2: `wsl --update`
+   - Verificar acceso a Windows: `cmd.exe /c echo "Test"`
 
 ## 🔄 Mantenimiento
 
@@ -171,6 +143,7 @@ vagrant ssh-config
 - [Documentación OKD](https://docs.okd.io/)
 - [Guía de Vagrant](https://www.vagrantup.com/docs)
 - [Documentación de Ansible](https://docs.ansible.com/)
+- [WSL2](https://docs.microsoft.com/en-us/windows/wsl/)
 
 ## 🎯 Próximos Pasos
 

@@ -4,12 +4,19 @@
 set -e
 
 echo "🔍 Verificando entorno WSL..."
-if [ -f /proc/version ] && grep -q Microsoft /proc/version; then
-    echo "⚠️  Detectado entorno WSL"
+echo "📝 Verificando /proc/version..."
+cat /proc/version
+
+# Verificar si estamos en WSL2
+if grep -q "microsoft" /proc/version; then
+    echo "✅ Detectado entorno WSL"
     echo "📝 Configurando entorno para WSL2..."
     
-    # Verificar si estamos en WSL2
-    if [ "$(uname -r | grep -o 'microsoft')" = "microsoft" ]; then
+    # Verificar si estamos en WSL2 usando el kernel
+    echo "🔍 Verificando versión del kernel..."
+    uname -a
+    
+    if uname -a | grep -q "microsoft-standard-WSL2"; then
         echo "✅ WSL2 detectado"
         
         # Instalar dependencias necesarias
@@ -42,6 +49,23 @@ if [ -f /proc/version ] && grep -q Microsoft /proc/version; then
         export VAGRANT_WSL_ENABLE_WINDOWS_ACCESS=1
         export VAGRANT_WSL_WINDOWS_ACCESS_USER_HOME_PATH=/mnt/c/Users/$USER
         
+        # Verificar acceso a Windows
+        echo "🔍 Verificando acceso a Windows..."
+        if ! command -v cmd.exe &> /dev/null; then
+            echo "❌ No se puede acceder a cmd.exe. Configurando acceso a Windows..."
+            
+            # Crear enlaces simbólicos para acceder a Windows
+            if [ ! -f /usr/local/bin/cmd.exe ]; then
+                echo "📝 Creando enlace simbólico para cmd.exe..."
+                sudo ln -sf /mnt/c/Windows/System32/cmd.exe /usr/local/bin/cmd.exe
+            fi
+            
+            if [ ! -f /usr/local/bin/powershell.exe ]; then
+                echo "📝 Creando enlace simbólico para powershell.exe..."
+                sudo ln -sf /mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe /usr/local/bin/powershell.exe
+            fi
+        fi
+
         # Verificar que podemos acceder a VirtualBox de Windows
         if ! VBoxManage --version &> /dev/null; then
             echo "❌ No se puede acceder a VirtualBox de Windows. Por favor, verifica que:"
@@ -49,6 +73,15 @@ if [ -f /proc/version ] && grep -q Microsoft /proc/version; then
             echo "   2. Has reiniciado WSL después de instalar VirtualBox"
             echo "   3. Has configurado las variables de entorno en Windows:"
             echo "      [Environment]::SetEnvironmentVariable('VAGRANT_WSL_ENABLE_WINDOWS_ACCESS', '1', 'User')"
+            exit 1
+        fi
+
+        # Verificar que cmd.exe está disponible
+        if ! command -v cmd.exe &> /dev/null; then
+            echo "❌ No se puede acceder a cmd.exe. Por favor, verifica que:"
+            echo "   1. WSL2 está correctamente configurado"
+            echo "   2. Has reiniciado WSL después de la instalación"
+            echo "   3. Los enlaces simbólicos se crearon correctamente"
             exit 1
         fi
 

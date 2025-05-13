@@ -2,6 +2,46 @@
 - name: Prepare Ubuntu host and deploy OKD cluster
   hosts: localhost
   become: true
+  vars:
+    vagrant_cmd: "~/win-scripts/run-vagrant.sh"
+  tasks:
+    - name: Verify WSL2 environment
+      shell: uname -a
+      register: wsl_version
+      changed_when: false
+
+    - name: Check if running in WSL2
+      fail:
+        msg: "This playbook must be run in WSL2"
+      when: "'microsoft-standard-WSL2' not in wsl_version.stdout"
+
+    - name: Verify VirtualBox installation
+      shell: /mnt/c/Program\ Files/Oracle/VirtualBox/VBoxManage.exe --version
+      register: vbox_version
+      changed_when: false
+      ignore_errors: true
+
+    - name: Fail if VirtualBox is not installed
+      fail:
+        msg: "VirtualBox is not installed in Windows. Please install it from https://www.virtualbox.org/wiki/Downloads"
+      when: vbox_version.rc != 0
+
+    - name: Launch Vagrant to create VMs
+      shell: "{{ vagrant_cmd }} up"
+      args:
+        chdir: "{{ playbook_dir }}/.."
+      register: vagrant_result
+      changed_when: true
+
+    - name: Display Vagrant output
+      debug:
+        var: vagrant_result.stdout_lines
+      when: vagrant_result.stdout_lines is defined
+
+    - name: Display Vagrant errors
+      debug:
+        var: vagrant_result.stderr_lines
+      when: vagrant_result.stderr_lines is defined and vagrant_result.stderr_lines | length > 0
   roles:
     - prepare-host
     - deploy-okd

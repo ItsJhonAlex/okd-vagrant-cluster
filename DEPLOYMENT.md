@@ -19,7 +19,8 @@
 ### Software Requerido
 - Windows 10/11 con WSL2
 - Ubuntu 20.04 o superior en WSL2
-- VirtualBox 6.1 o superior (instalado en Windows)
+- VirtualBox 7.1 o superior (instalado en Windows)
+- Vagrant 2.4 o superior (instalado en Windows)
 - Python 3.8 o superior
 - Ansible 2.9 o superior
 - Git
@@ -34,15 +35,15 @@
 
 2. **Instalar Ubuntu desde Microsoft Store**
 
-3. **Instalar dependencias en WSL2:**
+3. **Instalar VirtualBox y Vagrant en Windows:**
+   - Descargar e instalar [VirtualBox](https://www.virtualbox.org/wiki/Downloads)
+   - Descargar e instalar [Vagrant](https://www.vagrantup.com/downloads)
+   - Asegurarse de que ambos estén en el PATH del sistema
+
+4. **Instalar dependencias en WSL2:**
    ```bash
    sudo apt update
-   sudo apt install -y python3-pip libvirt-daemon-system qemu-kvm
-   ```
-
-4. **Instalar Ansible:**
-   ```bash
-   sudo pip3 install ansible
+   sudo apt install -y python3-pip
    ```
 
 ## 📁 Estructura del Proyecto
@@ -56,7 +57,11 @@ okd-vagrant-cluster/
 │       ├── deploy-okd/        # Despliegue de OKD
 │       └── monitoring-logging/ # Monitoreo y logging
 ├── scripts/
-│   └── setup.sh              # Script para WSL2
+│   ├── setup.sh              # Script principal de configuración
+│   └── test/                 # Scripts de prueba
+│       ├── simple-test-vagrant.sh
+│       ├── test-vagrant.sh
+│       └── install-boxes.sh
 └── Vagrantfile              # Configuración de VMs
 ```
 
@@ -70,8 +75,17 @@ okd-vagrant-cluster/
 
 2. **Ejecutar el Script de Configuración:**
    ```bash
-   bash scripts/setup.sh
+   chmod +x scripts/setup.sh
+   ./scripts/setup.sh
    ```
+
+   El script realizará:
+   - Verificación del entorno WSL2
+   - Configuración de la integración WSL2-Windows
+   - Instalación y verificación de Vagrant y VirtualBox
+   - Instalación del box de Ubuntu 20.04
+   - Configuración de scripts wrapper para Vagrant
+   - Instalación de Ansible y ejecución del playbook
 
 ## ✅ Verificación del Clúster
 
@@ -104,28 +118,34 @@ oc get pods --all-namespaces
 
 ## 🔍 Troubleshooting
 
-1. **Error de Virtualización**
+1. **Problemas con WSL2**
+   - Verificar que estás usando WSL2: `wsl --list --verbose`
+   - Actualizar WSL2: `wsl --update`
+   - Verificar acceso a Windows: `cmd.exe /c echo "Test"`
+
+2. **Problemas con Vagrant**
    ```bash
-   # Verificar virtualización
-   systemctl status libvirtd
+   # Verificar instalación
+   vagrant --version
+   
+   # Verificar boxes instalados
+   vagrant box list
+   
+   # Verificar plugins
+   vagrant plugin list
    ```
 
-2. **Problemas de Red**
+3. **Problemas de Red**
    ```bash
    # Verificar conectividad
    ping 192.168.56.10
    ```
 
-3. **Problemas con OKD**
+4. **Problemas con OKD**
    ```bash
    # Verificar logs
    oc logs -n kube-system
    ```
-
-4. **Problemas con WSL2**
-   - Verificar que estás usando WSL2: `wsl --list --verbose`
-   - Actualizar WSL2: `wsl --update`
-   - Verificar acceso a Windows: `cmd.exe /c echo "Test"`
 
 ## 🔄 Mantenimiento
 
